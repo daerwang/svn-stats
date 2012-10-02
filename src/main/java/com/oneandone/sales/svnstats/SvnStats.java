@@ -32,23 +32,16 @@ public class SvnStats {
     }
 
     public void analyseChanges(String start, String end) throws SVNException {
-        Collection logEntries = fetchLogEntries(start, end);
-
-        for (Iterator entries = logEntries.iterator(); entries.hasNext(); ) {
-            SVNLogEntry logEntry = (SVNLogEntry) entries.next();
-
+        for (SVNLogEntry logEntry : fetchLogEntries(start, end)) {
             if (logEntry.getChangedPaths().size() > 0) {
-                Set changedPathsSet = logEntry.getChangedPaths().keySet();
-
-                for (Iterator changedPaths = changedPathsSet.iterator(); changedPaths.hasNext(); ) {
-                    SVNLogEntryPath entryPath = (SVNLogEntryPath) logEntry.getChangedPaths().get(changedPaths.next());
-                    changedPath(entryPath);
+                for (Object entryPath : logEntry.getChangedPaths().values()) {
+                    changedPath((SVNLogEntryPath) entryPath);
                 }
             }
         }
     }
 
-    private Collection fetchLogEntries(String start, String end) throws SVNException {
+    private Collection<SVNLogEntry> fetchLogEntries(String start, String end) throws SVNException {
         long startRevision = parseRevision(start, 0);
         long endRevision = parseRevision(end, repository.getLatestRevision());
 
@@ -82,10 +75,10 @@ public class SvnStats {
         return revision;
     }
 
-    private Collection fetchLogEntries(long startRevision, long endRevision) {
-        Collection logEntries = null;
+    private Collection<SVNLogEntry> fetchLogEntries(long startRevision, long endRevision) {
+        Collection<SVNLogEntry> logEntries = null;
         try {
-            logEntries = repository.log(new String[]{""}, null, startRevision, endRevision, true, true);
+            logEntries = (Collection<SVNLogEntry>) repository.log(new String[]{""}, null, startRevision, endRevision, true, true);
         } catch (SVNException svne) {
             System.err.println("error while fetching the repository revision: " + svne.getMessage());
             System.exit(1);
@@ -121,15 +114,15 @@ public class SvnStats {
         }
 
         StringBuilder result = new StringBuilder();
-        result.append("Changed Files: " + changedFiles.size() + "\n");
+        result.append("Changed Files: ").append(changedFiles.size()).append("\n");
         result.append("\n");
         for (FileTypeStats type : types.values()) {
-            result.append(type.getType() + "\n");
-            result.append("   Files: " + type.getFiles().size() + "\n");
-            result.append("   Changes: " + type.getTotalChanges() + "\n");
-            result.append("   Added: " + type.getAdded() + "\n");
-            result.append("   Modified: " + type.getModified() + "\n");
-            result.append("   Deleted: " + type.getDeleted() + "\n");
+            result.append(type.getType()).append("\n");
+            result.append("   Files: ").append(type.getFiles().size()).append("\n");
+            result.append("   Changes: ").append(type.getTotalChanges()).append("\n");
+            result.append("   Added: ").append(type.getAdded()).append("\n");
+            result.append("   Modified: ").append(type.getModified()).append("\n");
+            result.append("   Deleted: ").append(type.getDeleted()).append("\n");
             result.append("\n");
             if (numberOfChangedFiles > 0) {
                 result.append("   Modified Files:\n");
@@ -139,7 +132,7 @@ public class SvnStats {
                         break;
                     }
                     fileCount += 1;
-                    result.append("      " + file.getTotalChanges() + " - " + file.getName() + "\n");
+                    result.append("      ").append(file.getTotalChanges()).append(" - ").append(file.getName()).append("\n");
                 }
                 result.append("\n");
             }

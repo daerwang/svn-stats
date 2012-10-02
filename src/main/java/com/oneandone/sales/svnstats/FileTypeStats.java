@@ -6,7 +6,7 @@ import java.util.Comparator;
 import java.util.List;
 
 public class FileTypeStats {
-    private String type;
+    private final String type;
     private int added;
     private int modified;
     private int deleted;
@@ -24,7 +24,7 @@ public class FileTypeStats {
     }
 
     public FileStats[] files() {
-        FileStats[] result = files.toArray(new FileStats[0]);
+        FileStats[] result = files.toArray(new FileStats[files.size()]);
         Arrays.sort(result, new Comparator<FileStats>() {
             @Override
             public int compare(FileStats o1, FileStats o2) {

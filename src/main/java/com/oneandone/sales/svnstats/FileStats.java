@@ -3,8 +3,8 @@ package com.oneandone.sales.svnstats;
 import org.tmatesoft.svn.core.SVNLogEntryPath;
 
 public class FileStats {
-    private String type;
-    private String name;
+    private final String type;
+    private final String name;
     private int added;
     private int modified;
     private int deleted;

@@ -23,7 +23,7 @@ All options are optional.
 
 -end r[REVISION NUMBER]       # end at given revision
      -[NUMBER OF MONTHS]      # end at last revision at the given date
-     yyyy-mm-dd               #end at last revision at the given date
+     yyyy-mm-dd               # end at last revision at the given date
 
 -changed-files top            # shows top ten files for each filetype
                [NUMBER]       # shows given number of files for each filetype
