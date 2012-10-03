@@ -7,12 +7,26 @@
   <version>0.1.0</version>
   <packaging>jar</packaging>
 
-  <name>svn-stats</name>
-  <url>http://maven.apache.org</url>
+  <name>SVN Stats</name>
+  <description>SVN analysis tool</description>
+  <url>http://holger.github.com/svn-stats/</url>
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
   </properties>
+
+  <scm>
+    <connection>scm:git:ssh://git@github.com:holger/svn-stats.git</connection>
+    <developerConnection>scm:git:ssh://git@github.com:holger/svn-stats.git</developerConnection>
+    <url>http://holger.github.com/svn-stats/</url>
+  </scm>
+
+  <developers>
+    <developer>
+        <name>Holger Rüprich</name>
+        <email>holger@rueprich.de</email>
+    </developer>
+  </developers>
 
   <dependencies>
     <dependency>
@@ -52,13 +66,24 @@
             </configuration>
             <executions>
                 <execution>
-                    <id>make-assembly</id> <!-- this is used for inheritance merges -->
-                    <phase>package</phase> <!-- bind to the packaging phase -->
+                    <id>make-assembly</id>
+                    <phase>package</phase>
                     <goals>
                         <goal>single</goal>
                     </goals>
                 </execution>
             </executions>
+        </plugin>
+
+        <plugin>
+            <groupId>com.github.github</groupId>
+            <artifactId>downloads-maven-plugin</artifactId>
+            <version>0.5</version>
+            <configuration>
+                <description>${project.version} release of ${project.name}</description>
+                <override>true</override>
+                <includeAttached>true</includeAttached>
+            </configuration>
         </plugin>
     </plugins>
   </build>
