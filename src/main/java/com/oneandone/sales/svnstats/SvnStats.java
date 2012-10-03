@@ -14,12 +14,14 @@ import org.tmatesoft.svn.core.wc.SVNWCUtil;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.Calendar;
+import java.util.Collection;
+import java.util.Date;
 
 public class SvnStats {
     private SVNRepository repository;
     private int numberOfChangedFiles;
-    private Map<String, FileStats> changedFiles = new HashMap<String, FileStats>();
+    private FileStats fileStats = new FileStats();
 
     public SvnStats(String path) throws SVNException {
         setupLibrary();
@@ -39,22 +41,10 @@ public class SvnStats {
 
     public void analyseChanges(String start, String end) throws SVNException {
         for (SVNLogEntry logEntry : fetchLogEntries(start, end)) {
-            if (logEntry.getChangedPaths().size() > 0) {
-                for (Object entryPath : logEntry.getChangedPaths().values()) {
-                    if (isFile(((SVNLogEntryPath) entryPath).getPath())) {
-                        if (changedFiles.containsKey(((SVNLogEntryPath) entryPath).getPath())) {
-                            changedFiles.get(((SVNLogEntryPath) entryPath).getPath()).update((SVNLogEntryPath) entryPath);
-                        } else {
-                            changedFiles.put(((SVNLogEntryPath) entryPath).getPath(), new FileStats((SVNLogEntryPath) entryPath));
-                        }
-                    }
-                }
+            for (Object entryPath : logEntry.getChangedPaths().values()) {
+                fileStats.analysePath((SVNLogEntryPath) entryPath);
             }
         }
-    }
-
-    private boolean isFile(String path) {
-        return path.contains(".");
     }
 
     private Collection<SVNLogEntry> fetchLogEntries(long startRevision, long endRevision) {
@@ -107,43 +97,6 @@ public class SvnStats {
     }
 
     public String toString() {
-        Map<String, FileTypeStats> types = new HashMap<String, FileTypeStats>();
-        for (FileStats file : changedFiles.values()) {
-            FileTypeStats type;
-            if (types.containsKey(file.getType())) {
-                type = types.get(file.getType());
-            } else {
-                type = new FileTypeStats(file.getType());
-                types.put(type.getType(), type);
-            }
-            type.addFile(file);
-        }
-
-        StringBuilder result = new StringBuilder();
-        result.append("Changed Files: ").append(changedFiles.size()).append("\n");
-        result.append("\n");
-        for (FileTypeStats type : types.values()) {
-            result.append(type.getType()).append("\n");
-            result.append("   Files: ").append(type.getFiles().size()).append("\n");
-            result.append("   Changes: ").append(type.getTotalChanges()).append("\n");
-            result.append("   Added: ").append(type.getAdded()).append("\n");
-            result.append("   Modified: ").append(type.getModified()).append("\n");
-            result.append("   Deleted: ").append(type.getDeleted()).append("\n");
-            result.append("\n");
-            if (numberOfChangedFiles > 0) {
-                result.append("   Modified Files:\n");
-                int fileCount = 0;
-                for (FileStats file : type.files()) {
-                    if (fileCount >= numberOfChangedFiles) {
-                        break;
-                    }
-                    fileCount += 1;
-                    result.append("      ").append(file.getTotalChanges()).append(" - ").append(file.getName()).append("\n");
-                }
-                result.append("\n");
-            }
-
-        }
-        return result.toString();
+        return fileStats.toString(numberOfChangedFiles);
     }
 }

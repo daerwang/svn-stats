@@ -5,29 +5,29 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 
-public class FileTypeStats {
+public class ChangedFileType {
     private final String type;
     private int added;
     private int modified;
     private int deleted;
-    private List<FileStats> files = new ArrayList<FileStats>();
+    private List<ChangedFile> files = new ArrayList<ChangedFile>();
 
-    public FileTypeStats(String type) {
+    public ChangedFileType(String type) {
         this.type = type;
     }
 
-    public void addFile(FileStats file) {
+    public void addFile(ChangedFile file) {
         files.add(file);
         added += file.getAdded();
         modified += file.getModified();
         deleted += file.getDeleted();
     }
 
-    public FileStats[] files() {
-        FileStats[] result = files.toArray(new FileStats[files.size()]);
-        Arrays.sort(result, new Comparator<FileStats>() {
+    public ChangedFile[] files() {
+        ChangedFile[] result = files.toArray(new ChangedFile[files.size()]);
+        Arrays.sort(result, new Comparator<ChangedFile>() {
             @Override
-            public int compare(FileStats o1, FileStats o2) {
+            public int compare(ChangedFile o1, ChangedFile o2) {
                 return o2.getTotalChanges() - o1.getTotalChanges();
             }
         });
@@ -54,8 +54,15 @@ public class FileTypeStats {
         return deleted;
     }
 
-    public List<FileStats> getFiles() {
+    public List<ChangedFile> getFiles() {
         return files;
+    }
+
+    public boolean equals(Object o) {
+        if (o instanceof String) {
+            return type.equals(o);
+        }
+        return super.equals(o);
     }
 
 }
