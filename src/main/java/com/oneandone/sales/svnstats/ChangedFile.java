@@ -57,14 +57,4 @@ public class ChangedFile {
     public int getDeleted() {
         return deleted;
     }
-
-    public boolean equals(Object o) {
-        if (o instanceof SVNLogEntryPath) {
-            return path.equals(((SVNLogEntryPath) o).getPath());
-        }
-        if (o instanceof String) {
-            return path.equals(o);
-        }
-        return super.equals(o);
-    }
 }

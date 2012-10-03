@@ -58,11 +58,4 @@ public class ChangedFileType {
         return files;
     }
 
-    public boolean equals(Object o) {
-        if (o instanceof String) {
-            return type.equals(o);
-        }
-        return super.equals(o);
-    }
-
 }
