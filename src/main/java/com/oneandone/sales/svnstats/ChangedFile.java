@@ -2,18 +2,18 @@ package com.oneandone.sales.svnstats;
 
 import org.tmatesoft.svn.core.SVNLogEntryPath;
 
-public class FileStats {
-    private final String type;
-    private final String name;
+public class ChangedFile {
+    private final String fileType;
+    private final String path;
     private int added;
     private int modified;
     private int deleted;
 
-    public FileStats(SVNLogEntryPath path) {
-        name = path.getPath();
-        String[] tmp = name.split("[.]");
-        type = tmp[tmp.length - 1];
-        countChange(path.getType());
+    public ChangedFile(SVNLogEntryPath svnPath) {
+        path = svnPath.getPath();
+        String[] tmp = path.split("[.]");
+        fileType = tmp[tmp.length - 1];
+        countChange(svnPath.getType());
     }
 
     public void update(SVNLogEntryPath path) {
@@ -34,12 +34,12 @@ public class FileStats {
         }
     }
 
-    public String getType() {
-        return type;
+    public String getFileType() {
+        return fileType;
     }
 
-    public String getName() {
-        return name;
+    public String getPath() {
+        return path;
     }
 
     public int getTotalChanges() {
@@ -56,5 +56,15 @@ public class FileStats {
 
     public int getDeleted() {
         return deleted;
+    }
+
+    public boolean equals(Object o) {
+        if (o instanceof SVNLogEntryPath) {
+            return path.equals(((SVNLogEntryPath) o).getPath());
+        }
+        if (o instanceof String) {
+            return path.equals(o);
+        }
+        return super.equals(o);
     }
 }
