@@ -26,6 +26,12 @@ public class SvnStats {
         repository = SVNRepositoryFactory.create(SVNURL.parseURIEncoded(path));
     }
 
+    private void setupLibrary() {
+        DAVRepositoryFactory.setup();
+        SVNRepositoryFactoryImpl.setup();
+        FSRepositoryFactory.setup();
+    }
+
     public void login(String username, String password) {
         ISVNAuthenticationManager authManager = SVNWCUtil.createDefaultAuthenticationManager(username, password);
         repository.setAuthenticationManager(authManager);
@@ -35,10 +41,31 @@ public class SvnStats {
         for (SVNLogEntry logEntry : fetchLogEntries(start, end)) {
             if (logEntry.getChangedPaths().size() > 0) {
                 for (Object entryPath : logEntry.getChangedPaths().values()) {
-                    changedPath((SVNLogEntryPath) entryPath);
+                    if (isFile(((SVNLogEntryPath) entryPath).getPath())) {
+                        if (changedFiles.containsKey(((SVNLogEntryPath) entryPath).getPath())) {
+                            changedFiles.get(((SVNLogEntryPath) entryPath).getPath()).update((SVNLogEntryPath) entryPath);
+                        } else {
+                            changedFiles.put(((SVNLogEntryPath) entryPath).getPath(), new FileStats((SVNLogEntryPath) entryPath));
+                        }
+                    }
                 }
             }
         }
+    }
+
+    private boolean isFile(String path) {
+        return path.contains(".");
+    }
+
+    private Collection<SVNLogEntry> fetchLogEntries(long startRevision, long endRevision) {
+        Collection<SVNLogEntry> logEntries = null;
+        try {
+            logEntries = (Collection<SVNLogEntry>) repository.log(new String[]{""}, null, startRevision, endRevision, true, true);
+        } catch (SVNException svne) {
+            System.err.println("error while fetching the repository revision: " + svne.getMessage());
+            System.exit(1);
+        }
+        return logEntries;
     }
 
     private Collection<SVNLogEntry> fetchLogEntries(String start, String end) throws SVNException {
@@ -75,29 +102,8 @@ public class SvnStats {
         return revision;
     }
 
-    private Collection<SVNLogEntry> fetchLogEntries(long startRevision, long endRevision) {
-        Collection<SVNLogEntry> logEntries = null;
-        try {
-            logEntries = (Collection<SVNLogEntry>) repository.log(new String[]{""}, null, startRevision, endRevision, true, true);
-        } catch (SVNException svne) {
-            System.err.println("error while fetching the repository revision: " + svne.getMessage());
-            System.exit(1);
-        }
-        return logEntries;
-    }
-
-    private void changedPath(SVNLogEntryPath path) {
-        if (isFile(path.getPath())) {
-            if (changedFiles.containsKey(path.getPath())) {
-                changedFiles.get(path.getPath()).update(path);
-            } else {
-                changedFiles.put(path.getPath(), new FileStats(path));
-            }
-        }
-    }
-
-    private boolean isFile(String path) {
-        return path.contains(".");
+    public void numberOfChangedFiles(int i) {
+        numberOfChangedFiles = i;
     }
 
     public String toString() {
@@ -139,15 +145,5 @@ public class SvnStats {
 
         }
         return result.toString();
-    }
-
-    public void numberOfChangedFiles(int i) {
-        numberOfChangedFiles = i;
-    }
-
-    private void setupLibrary() {
-        DAVRepositoryFactory.setup();
-        SVNRepositoryFactoryImpl.setup();
-        FSRepositoryFactory.setup();
     }
 }
