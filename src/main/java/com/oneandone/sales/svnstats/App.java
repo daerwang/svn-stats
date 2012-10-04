@@ -1,10 +1,19 @@
 package com.oneandone.sales.svnstats;
 
+import com.oneandone.sales.svnstats.connectors.Repository;
+import com.oneandone.sales.svnstats.connectors.svnkit.SvnRepository;
+import com.oneandone.sales.svnstats.model.Revision;
+import com.oneandone.sales.svnstats.output.ConsoleOutput;
 import net.sf.beezle.sushi.cli.Cli;
 import net.sf.beezle.sushi.cli.Command;
 import net.sf.beezle.sushi.cli.Option;
 import net.sf.beezle.sushi.cli.Value;
-import org.tmatesoft.svn.core.SVNException;
+
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.List;
 
 public class App extends Cli implements Command {
 
@@ -25,7 +34,7 @@ public class App extends Cli implements Command {
         System.exit(new App().run(args));
     }
 
-    public void invoke() throws SVNException {
+    public void invoke() {
         console.info.println("command invoked with ");
         console.info.println("   path = " + path);
         console.info.println("   username = " + username);
@@ -35,24 +44,51 @@ public class App extends Cli implements Command {
         console.info.println("   changed-files = " + changedFiles);
         console.info.println("");
 
-        SvnStats stats = new SvnStats(path);
+        Repository repository = new SvnRepository(path, username, password);
 
-        if (username != null && password != null) {
-            stats.login(username, password);
-        }
+        long startRevision = parseRevision(repository, start, 0);
+        long endRevision = parseRevision(repository, end, -1);
 
+        int numberOfChangedFiles = 0;
         if (changedFiles != null) {
             if (changedFiles.equalsIgnoreCase("top")) {
-                stats.numberOfChangedFiles(10);
+                numberOfChangedFiles = 10;
             } else {
-                int numberOfChangedFiles = Integer.parseInt(changedFiles);
-                stats.numberOfChangedFiles(numberOfChangedFiles);
+                numberOfChangedFiles = Integer.parseInt(changedFiles);
             }
         }
 
-        stats.analyseChanges(start, end);
+        List<Revision> revisions = repository.fetchRevisions(startRevision, endRevision);
+        FileStats fileStats = new FileStats(revisions);
+        ConsoleOutput output = new ConsoleOutput();
+        System.out.println(output.print(fileStats, numberOfChangedFiles));
+    }
 
-        System.out.println(stats);
+    private long parseRevision(Repository repository, String revisionString, long fallback) {
+        if (revisionString == null) {
+            return fallback;
+        }
+
+        long revision;
+
+        if (revisionString.startsWith("r")) {
+            revision = Long.parseLong(revisionString.substring(2));
+        } else if (revisionString.startsWith("-")) {
+            Calendar cal = Calendar.getInstance();
+            int beforeMonths = Integer.parseInt(revisionString.substring(2));
+            cal.add(Calendar.MONTH, -beforeMonths);
+            revision = repository.getDatedRevision(cal.getTime());
+        } else {
+            SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
+            try {
+                Date date = formatter.parse(revisionString);
+                revision = repository.getDatedRevision(date);
+            } catch (ParseException e) {
+                revision = fallback;
+            }
+        }
+
+        return revision;
     }
 
     @Override

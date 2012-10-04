@@ -4,7 +4,7 @@
 
   <groupId>com.oneandone.sales.svn-stats</groupId>
   <artifactId>svn-stats</artifactId>
-  <version>0.2.0</version>
+  <version>0.3.0</version>
   <packaging>jar</packaging>
 
   <name>SVN Stats</name>
