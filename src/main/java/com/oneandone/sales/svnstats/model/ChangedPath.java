@@ -5,6 +5,7 @@ public class ChangedPath {
     private String path;
     private ChangeType type;
     private NodeKind kind;
+    private String diff;
 
     public ChangedPath(String path) {
         this.path = path;
@@ -28,6 +29,14 @@ public class ChangedPath {
 
     public NodeKind kind() {
         return kind;
+    }
+
+    public void diff(String diff) {
+        this.diff = diff;
+    }
+
+    public String diff() {
+        return diff;
     }
 
 }

@@ -3,13 +3,11 @@ package com.oneandone.sales.svnstats.output;
 import com.oneandone.sales.svnstats.FileStats;
 import com.oneandone.sales.svnstats.model.File;
 
-import java.util.Arrays;
-import java.util.Comparator;
-import java.util.List;
+import java.util.*;
 
-public class ConsoleOutput {
+public class ConsoleOutput implements Output {
 
-    public String print(FileStats fileStats, int numberOfChangedFiles) {
+    public String print(FileStats fileStats, int numberOfFiles) {
         StringBuilder result = new StringBuilder();
         result.append("Changed Files: ").append(fileStats.files().size()).append("\n");
         result.append("\n");
@@ -18,9 +16,11 @@ public class ConsoleOutput {
             result.append(type).append("\n");
             List<File> fileTypeFiles = fileStats.fileTypes().get(type);
             printCounts(result, fileTypeFiles);
-            printFiles(result, fileTypeFiles, numberOfChangedFiles);
+            printFiles(result, fileTypeFiles, numberOfFiles);
 
         }
+
+        System.out.println(result.toString());
         return result.toString();
     }
 
@@ -45,8 +45,8 @@ public class ConsoleOutput {
         result.append("\n");
     }
 
-    private void printFiles(StringBuilder result, List<File> fileTypeFiles, int numberOfChangedFiles) {
-        if (numberOfChangedFiles > 0) {
+    private void printFiles(StringBuilder result, List<File> fileTypeFiles, int numberOfFiles) {
+        if (numberOfFiles > 0) {
             result.append("   Changed Files:\n");
 
             File[] fileArray = fileTypeFiles.toArray(new File[fileTypeFiles.size()]);
@@ -58,11 +58,38 @@ public class ConsoleOutput {
 
             int fileCount = 0;
             for (File file : fileArray) {
-                if (fileCount >= numberOfChangedFiles) {
+                if (fileCount >= numberOfFiles) {
                     break;
                 }
                 fileCount += 1;
-                result.append("      ").append(file.timesChanged()).append(" - ").append(file.path()).append("\n");
+                result.append("      ")
+                        .append(file.linesAdded())
+                        .append(" (A) - ")
+                        .append(file.linesDeleted())
+                        .append(" (D) - ")
+                        .append(file.timesChanged())
+                        .append(" (C) - ")
+                        .append(file.path())
+                        .append("\n");
+
+                if (file.dependenciesUpdated().size() > 0) {
+                    result.append("        Updated Dependencies:\n");
+                    Map<String, Integer> dependenciesCount = new HashMap<String, Integer>();
+                    for (String dependency : file.dependenciesUpdated()) {
+                        if (dependenciesCount.containsKey(dependency)) {
+                            dependenciesCount.put(dependency, dependenciesCount.get(dependency) + 1);
+                        } else {
+                            dependenciesCount.put(dependency, Integer.valueOf(1));
+                        }
+                    }
+                    for (Map.Entry<String, Integer> dependencyCount : dependenciesCount.entrySet()) {
+                        result.append("          ")
+                                .append(dependencyCount.getValue())
+                                .append(" - ")
+                                .append(dependencyCount.getKey())
+                                .append("\n");
+                    }
+                }
             }
             result.append("\n");
         }

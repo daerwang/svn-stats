@@ -4,6 +4,7 @@ import com.oneandone.sales.svnstats.connectors.Repository;
 import com.oneandone.sales.svnstats.connectors.svnkit.SvnRepository;
 import com.oneandone.sales.svnstats.model.Revision;
 import com.oneandone.sales.svnstats.output.ConsoleOutput;
+import com.oneandone.sales.svnstats.output.Output;
 import net.sf.beezle.sushi.cli.Cli;
 import net.sf.beezle.sushi.cli.Command;
 import net.sf.beezle.sushi.cli.Option;
@@ -44,24 +45,25 @@ public class App extends Cli implements Command {
         console.info.println("   changed-files = " + changedFiles);
         console.info.println("");
 
-        Repository repository = new SvnRepository(path, username, password);
+        Repository repository = createRepository();
 
         long startRevision = parseRevision(repository, start, 0);
         long endRevision = parseRevision(repository, end, -1);
-
-        int numberOfChangedFiles = 0;
-        if (changedFiles != null) {
-            if (changedFiles.equalsIgnoreCase("top")) {
-                numberOfChangedFiles = 10;
-            } else {
-                numberOfChangedFiles = Integer.parseInt(changedFiles);
-            }
-        }
+        int numberOfChangedFiles = parseNumberOfChangedFiles();
 
         List<Revision> revisions = repository.fetchRevisions(startRevision, endRevision);
         FileStats fileStats = new FileStats(revisions);
-        ConsoleOutput output = new ConsoleOutput();
-        System.out.println(output.print(fileStats, numberOfChangedFiles));
+
+        Output output = createOutput();
+        output.print(fileStats, numberOfChangedFiles);
+    }
+
+    private Repository createRepository() {
+        return new SvnRepository(path, username, password);
+    }
+
+    private Output createOutput() {
+        return new ConsoleOutput();
     }
 
     private long parseRevision(Repository repository, String revisionString, long fallback) {
@@ -72,10 +74,10 @@ public class App extends Cli implements Command {
         long revision;
 
         if (revisionString.startsWith("r")) {
-            revision = Long.parseLong(revisionString.substring(2));
+            revision = Long.parseLong(revisionString.substring(1));
         } else if (revisionString.startsWith("-")) {
             Calendar cal = Calendar.getInstance();
-            int beforeMonths = Integer.parseInt(revisionString.substring(2));
+            int beforeMonths = Integer.parseInt(revisionString.substring(1));
             cal.add(Calendar.MONTH, -beforeMonths);
             revision = repository.getDatedRevision(cal.getTime());
         } else {
@@ -89,6 +91,18 @@ public class App extends Cli implements Command {
         }
 
         return revision;
+    }
+
+    private int parseNumberOfChangedFiles() {
+        int numberOfChangedFiles = 0;
+        if (changedFiles != null) {
+            if (changedFiles.equalsIgnoreCase("top")) {
+                numberOfChangedFiles = 10;
+            } else {
+                numberOfChangedFiles = Integer.parseInt(changedFiles);
+            }
+        }
+        return numberOfChangedFiles;
     }
 
     @Override

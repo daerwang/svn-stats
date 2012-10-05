@@ -1,5 +1,8 @@
 package com.oneandone.sales.svnstats.model;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class File {
 
     private String path;
@@ -7,6 +10,9 @@ public class File {
     private int timesAdded;
     private int timesModified;
     private int timesDeleted;
+    private int linesAdded;
+    private int linesDeleted;
+    private List<String> dependenciesUpdated = new ArrayList<String>();
 
     public File(ChangedPath changedPath) {
         this.path = changedPath.path();
@@ -49,6 +55,30 @@ public class File {
 
     public int timesDeleted() {
         return timesDeleted;
+    }
+
+    public void linesAdded(int linesAdded) {
+        this.linesAdded += linesAdded;
+    }
+
+    public int linesAdded() {
+        return linesAdded;
+    }
+
+    public void linesDeleted(int linesDeleted) {
+        this.linesDeleted += linesDeleted;
+    }
+
+    public int linesDeleted() {
+        return linesDeleted;
+    }
+
+    public void updatedDependency(String dependency) {
+        dependenciesUpdated.add(dependency);
+    }
+
+    public List<String> dependenciesUpdated() {
+        return dependenciesUpdated;
     }
 
 }

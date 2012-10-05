@@ -16,6 +16,10 @@ public class Revision {
         this.id = id;
     }
 
+    public long id() {
+        return id;
+    }
+
     public void author(String author) {
         this.author = author;
     }

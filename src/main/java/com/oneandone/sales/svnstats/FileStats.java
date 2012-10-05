@@ -9,11 +9,21 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class FileStats {
 
     private Map<String, File> files = new HashMap<String, File>();
     private Map<String, List<File>> fileTypes = new HashMap<String, List<File>>();
+    public static final Pattern LINES_ADDED_PATTERN = Pattern.compile("^[+] ", Pattern.MULTILINE);
+    public static final Pattern LINES_DELETED_PATTERN = Pattern.compile("^[-] ", Pattern.MULTILINE);
+    public static final Pattern CHANGED_VERSION_PATTERN = Pattern.compile(
+            "<groupId>(.*?)</groupId>\\s*" +
+                    "<artifactId>(.*?)</artifactId>\\s*" +
+                    "^-\\s*<version>.*\\s*" +
+                    "^[+]\\s*<version>",
+            Pattern.MULTILINE);
 
     public FileStats(List<Revision> revisions) {
         for (Revision revision : revisions) {
@@ -22,12 +32,16 @@ public class FileStats {
                     continue;
                 }
 
+                File file;
                 if (files.containsKey(path.path())) {
-                    files.get(path.path()).update(path);
+                    file = files.get(path.path());
+                    file.update(path);
                 } else {
-                    File file = new File(path);
+                    file = new File(path);
                     files.put(path.path(), file);
                 }
+
+                parseDiff(file, path.diff());
             }
         }
 
@@ -40,6 +54,28 @@ public class FileStats {
                 fileTypes.put(file.type(), fileTypeFiles);
             }
         }
+    }
+
+    private void parseDiff(File file, String diff) {
+        if (diff == null || diff.isEmpty()) {
+            return;
+        }
+
+        file.linesAdded(countLines(diff, LINES_ADDED_PATTERN));
+        file.linesDeleted(countLines(diff, LINES_DELETED_PATTERN));
+        Matcher versionMatcher = CHANGED_VERSION_PATTERN.matcher(diff);
+        while(versionMatcher.find()) {
+            file.updatedDependency(versionMatcher.group(1) + "." + versionMatcher.group(2));
+        }
+    }
+
+    private int countLines(String diff, Pattern pattern) {
+        int linesAdded = 0;
+        Matcher linesAddedMatcher = pattern.matcher(diff);
+        while (linesAddedMatcher.find()) {
+            linesAdded += 1;
+        }
+        return linesAdded;
     }
 
     public Map<String, File> files() {

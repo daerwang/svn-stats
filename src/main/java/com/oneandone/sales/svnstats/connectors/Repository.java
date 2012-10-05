@@ -11,4 +11,6 @@ public interface Repository {
 
     public long getDatedRevision(Date date);
 
+    public String diff(String path, long oldRevision, long newRevision);
+
 }
